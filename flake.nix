@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Nix package for Pantsbuild: The ergonomic build system";
 
   inputs = {
     systems.url = "github:nix-systems/default-linux";

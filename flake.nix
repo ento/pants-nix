@@ -2,6 +2,9 @@
   description = "A very basic flake";
 
   inputs = {
+    systems.url = "github:nix-systems/default-linux";
+    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils.inputs.systems.follows = "systems";
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-23.11";
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
@@ -9,18 +12,22 @@
   outputs = {
     self,
     nixpkgs,
+    flake-utils,
     rust-overlay,
-  }: let
-    system = "x86_64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-      overlays = [rust-overlay.overlays.default];
-    };
-    pants-bin = pkgs.callPackage ./. {};
-  in {
-    packages.${system} = pants-bin;
-    devShells.${system}.default = pkgs.mkShell {
-      packages = [pants-bin."release_2.20.0"];
-    };
-  };
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [rust-overlay.overlays.default];
+        };
+        pants-bin = pkgs.callPackage ./. {};
+      in {
+        packages = pants-bin;
+        devShells.default = pkgs.mkShell {
+          packages = [pants-bin."release_2.20.0"];
+        };
+      }
+    );
 }
